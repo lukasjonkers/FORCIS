@@ -47,10 +47,12 @@ p2 <- sizeInt %>%
   scale_y_log10() +
   # scale_colour_viridis_c() +
   geom_smooth(aes(colour = depth_bin), method = 'loess', size = 2) +
-  facet_grid(vars(lat_bin), vars(lon_bin)) +
+  # facet_grid(vars(lat_bin), vars(lon_bin)) +
   labs(title = 'Multiplication factor') +
   theme_bw()
 
 
 p1 + p2  
 
+# fit asymptotic regression
+# https://www.statforbiology.com/nonlinearregression/usefulequations

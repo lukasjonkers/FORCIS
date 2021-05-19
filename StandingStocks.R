@@ -35,6 +35,7 @@ dat <- dat_all[, c(grep('site_id', names(dat_all)),
          concentration = total_abundance_lumped_tax_number_m3_abs_lump) %>%
   arrange(profile_id, sample_min_depth)
 
+
 # standing stocks down to level
 
 level <- 100
@@ -67,3 +68,46 @@ standingstock %>%
   ggplot(aes(lon, lat, colour = logSumForam)) +
   geom_point() +
   scale_colour_viridis_c()
+
+
+dat %>%
+  # filter(site_id == 'FAEGAS_I_F1-ZA2' | site_id == 'AtlantisCruise_St1') %>%
+  filter(all_species_counted_bool == 1) %>%
+  filter(sample_include_in_profile == TRUE) %>%
+  filter(living_or_dead == 'Living') %>%
+  filter(profile_depth_max >= 200) %>%
+  group_by(profile_id) %>%
+  mutate(nsample = n_distinct(sample_id)) %>%
+  ungroup() %>%
+  filter(nsample > 1) %>%
+  filter(profile_depth_min == 0) %>%
+  group_by(site_id, profile_id, sample_id, lon, lat, sample_min_depth, sample_max_depth, date) %>%
+  summarise(concentration = sum(concentration)) %>% # sum subsamples
+  arrange(site_id, profile_id, sample_min_depth) %>%
+  mutate(foo = lead(sample_min_depth, default = max(sample_max_depth)),
+         gap = sample_max_depth - foo != 0) %>%
+  group_by(site_id, profile_id) %>%
+  mutate(gapInProfile = any(gap)) %>%
+  ungroup() %>%
+  filter(gapInProfile == FALSE) %>%
+  group_by(site_id, profile_id, lon, lat, date) %>%
+  slice_max(concentration) %>%
+  mutate(midDepth = (sample_max_depth - sample_min_depth)/2) %>%
+  # View()
+  
+  ggplot(aes(midDepth, lat)) +
+  geom_point() +
+  scale_colour_viridis_c() +
+  labs(title = 'Depth of maximum concentration of living foraminifera')
+
+#### to do ####
+
+# estimate base of productive zone
+# by looking upwards from deep nets and assign base to where change in foraminifera exceeds threshold
+# could define threshold from mean of difference in concetration
+
+
+# assess how well surface standing stock represents entire standing stock
+# either down to base of prod zone (above) or down to predefined level (top)
+# correlation between near surface concentration with standing stock
+
